@@ -1,3 +1,7 @@
+import os
+import sys
+import re
+
 while 1:
     userIn =input("$ ")
     if userIn == "exit":
