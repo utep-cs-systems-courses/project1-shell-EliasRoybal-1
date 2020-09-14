@@ -9,8 +9,13 @@ def initialPrompt():
         if userIn == "exit":
             break
         try:
+            fork =  os.fork()
+            if fork > 0:
+                print("Parent process ID:" ,processID)
+            else:
+                print("Child process ID:", processID)
             command = eval(userIn)
-            print(processID)
+            #print(processID)
             if command: print(command)
         except:
             try:
