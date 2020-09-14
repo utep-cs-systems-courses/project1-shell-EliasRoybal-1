@@ -2,9 +2,8 @@ import os
 import sys
 import re
 
+processID = os.getpid()
 def initialPrompt():
-    global processID
-    processID = os.getpid()
     while 1:
         userIn =input("$ ")
         if userIn == "exit":
@@ -20,4 +19,3 @@ def initialPrompt():
                 print("Error: ", e)
                 
 initialPrompt()
-
