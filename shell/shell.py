@@ -2,15 +2,22 @@ import os
 import sys
 import re
 
-while 1:
-    userIn =input("$ ")
-    if userIn == "exit":
-        break
-    try:
-        command = eval(userIn)
-        if command: print(command)
-    except:
+def initialPrompt():
+    global processID
+    processID = os.getpid()
+    while 1:
+        userIn =input("$ ")
+        if userIn == "exit":
+            break
         try:
-            exec(userIn)
-        except Exception as e:
-            print("Error: ", e)
+            command = eval(userIn)
+            print(processID)
+            if command: print(command)
+        except:
+            try:
+                exec(userIn)
+            except Exception as e:
+                print("Error: ", e)
+                
+initialPrompt()
+
