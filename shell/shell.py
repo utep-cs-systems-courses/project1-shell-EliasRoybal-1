@@ -1,37 +1,22 @@
+#! /usr/bin/env python3
+
 import os
 import sys
 import re
 
 processID = os.getpid()
-defaultCommands =['cd','exit']
-def initialPrompt():
-    defaultPrompt = '$ '
-    if 'PS1'in os.environ:
-        print("in if")
-        defaultPrompt = os.environ['PS1'] #makes the default prompt contain the default environment variable
-        
-    while True:
-        userIn =input(defaultPrompt)
-        if userIn == "exit":
-            sys.exit(0)
-        try:
-            command = eval(userIn)
-            runBuiltInCommands(userIn[0])
-            fork =  os.fork()
-            if fork > 0:
-                print("Parent process ID:" ,processID)
-            else:
-                print("Child process ID:", processID)
-            #print(processID)
-            if command: print(command)
-        except KeyError as e:
-            print("Error: ", e)
-        except:
-            try:
-                exec(userIn)
-            except Exception as e:
-                print("Error: ", e)
 
+def initialPrompt():
+    while(True):
+        defaultPrompt = os.getcwd()
+        if 'PS1'in os.environ:
+            defaultPrompt = os.environ['PS1']
+            
+        command =input(defaultPrompt + ' $ ')
+        comand = command.split(' ')
+        if command[0].lower() == 'exit':
+            sys.exit(0)
+                
 def runBuiltInCommands(userIn):
     if userIn[0] not in defaultCommands:
         return
