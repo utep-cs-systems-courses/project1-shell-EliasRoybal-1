@@ -16,6 +16,7 @@ def initialPrompt():
             sys.exit(0)
         try:
             command = eval(userIn)
+            runBuiltInCommands(userIn[0])
             fork =  os.fork()
             if fork > 0:
                 print("Parent process ID:" ,processID)
@@ -30,6 +31,19 @@ def initialPrompt():
                 exec(userIn)
             except Exception as e:
                 print("Error: ", e)
-                
+
+def runBuiltInCommands(userIn):
+    if userIn[0] not in defaultCommands:
+        return
+    elif command == 'cd':
+        currWorkingDir = os.getcwd() #gets current working directory
+        if len(userIn)>1:
+            try:
+                os.chdir(os.path.join(cwd,command[1]))
+            except FileNotFoundError:
+                print("No such directory found")
+            except NotADirectoryError:
+                os.chdir(cwd) #keeps last cwd if user given directory is not found
 initialPrompt()
+
         
