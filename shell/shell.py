@@ -26,6 +26,7 @@ def initialPrompt():
             except FileNotFoundError:
                 os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
 
+        elif
 def pipe(args):
     write = args[0:args.index("|")]
     read = args[args.index("|")+1:]
@@ -79,6 +80,7 @@ def redirectionAndExecution(args):
         sys.exit(1)
 
     os.write(2,("Command not found"))
+    sys.exit(1)
                         
                         
 initialPrompt()
