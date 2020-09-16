@@ -7,7 +7,7 @@ import re
 processID = os.getpid()
 
 def initialPrompt():
-    while(True):
+    while True:
         cwd = os.getcwd()
         if 'PS1'in os.environ:
             defaultPrompt = os.environ['PS1']
@@ -15,29 +15,34 @@ def initialPrompt():
         args =input(cwd + ' $ ')
         args = args.strip()
         args = args.split(' ')
-        
-        if args[0].lower() == 'exit':
-            sys.exit(0)
-        if args[0].lower() == 'cd':
-            try:
-                os.chdir(args[1])
-            except IndexError:
-                os.write(2, ("You must include desired target directory \n").encode()) 
-            except FileNotFoundError:
-                os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
 
-        elif "|" in args:
-            fork = os.fork()
-            if fork == 0: #child process
-                pipe(args)
-            elif fork < 0:
-                os.write(2, ("Fork failed\n").encode())
-                sys.exit(1)
-            else: #parent for was good
-                if args[-1] != "&":
-                    val = os.wait()
-                    if val[1] != 0 and val[1] != 256:
-                        os.write(2, ("Program ended. Exit code: %d\n" % val[1].encode()))
+        try:
+
+            if len(args) == 0: #contiues prompt in argument is empty
+                continue
+            if args[0].lower() == 'exit':
+                sys.exit(0)
+                if args[0].lower() == 'cd':
+                    try:
+                        os.chdir(args[1])
+                    except IndexError:
+                        os.write(2, ("You must include desired target directory \n").encode()) 
+                    except FileNotFoundError:
+                        os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
+                elif "|" in args:
+                    fork = os.fork()
+                    if fork == 0: #child process
+                        pipe(args)
+                    elif fork < 0:
+                        os.write(2, ("Fork failed\n").encode())
+                        sys.exit(1)
+                    else: #parent for was good
+                        if args[-1] != "&":
+                            val = os.wait()
+                            if val[1] != 0 and val[1] != 256:
+                                os.write(2, ("Program ended. Exit code: %d\n" % val[1].encode()))
+        except FileNotFoundError:
+            sys.exit(1)
         else:
             rc = os.fork()
 
@@ -106,7 +111,7 @@ def redirectionAndExecution(args):
     try:
         if args[0][0] == '/':
             os.execve(args[0],args,os.environ) #tries to run process
-    except FileNotFOundError:
+    except FileNotFoundError:
         pass
     except Exception:
         sys.exit(1)
