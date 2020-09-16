@@ -8,25 +8,77 @@ processID = os.getpid()
 
 def initialPrompt():
     while(True):
-        defaultPrompt = os.getcwd()
+        cwd = os.getcwd()
         if 'PS1'in os.environ:
             defaultPrompt = os.environ['PS1']
             
-        command =input(defaultPrompt + ' $ ')
-        command = command.strip()
-        comand = command.split(' ')
+        args =input(cwd + ' $ ')
+        args = args.strip()
+        args = args.split(' ')
         
-        if command.lower() == 'exit':
+        if args[0].lower() == 'exit':
             sys.exit(0)
-        if command == 'cd':
-            currWorkingDir = os.getcwd() #gets current working directory
-            if len(command)>1:
-                try:
-                    os.chdir(os.path.join(defaultPrompt,command[1]))
-                except FileNotFoundError:
-                    print("No such directory found")
-                except NotADirectoryError:
-                    os.chdir(cwd) #keeps last cwd if user given directory is not found
-initialPrompt()
+        if args[0].lower() == 'cd':
+            try:
+                os.chdir(args[1])
+            except IndexError:
+                os.write(2, ("You must include desired target directory \n").encode()) 
+            except FileNotFoundError:
+                os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
 
-        
+def pipe(args):
+    write = args[0:args.index("|")]
+    read = args[args.index("|")+1:]
+    pipeReader, pipeWriter = os.pipe()
+    rc = os.fork(); #returns 0 to child, pid to parent
+
+    if rc > 0: #parent process
+        os.close(0)#closes input file descriptor
+        os.dup(pipeReader,0) #dups pipe reader to file descriptor 0
+        for fileDescriptor in (pipeWriter, pipeReader):
+            os.close(fileDescriptor) #closes with file descriptor in pipe
+        if "|" in read:
+            pipe(read)
+        initialPrompt() #runs going back to initialPrompt
+        os.write(2, ("Not executable").encode())
+    elif rc == 0: #child process
+        os.close(1) #closes output file descriptor
+        os.dup(pipeWriter,1) #dups pipe writer to file descriptor 1
+        for fileDescriptor in (pipeReader, pipeWriter):
+            os.close(fileDescriptor) #closes both pipe reader and pipe writer
+        initialPrompt() #goes back to initialPrompt
+        os.write(2,("Not executable").encode())
+        sys.exit(1)
+    else: #fork failed
+        os.write(2,("Fork failed").encode())
+        sys.exit(1)
+
+def redirectionAndExecution(args):
+    try:
+        if '<' in args: #input redirection
+            os.close(0) #input stdin
+            os.open(args[args.index('<') +1], os.O_RDONLY) #opens file to read
+            os.set_inheritable(0,true) #sets value of inheritable flag of stdin file descriptor
+            args.remove(args[args.index('<')+1]) #removes file name from list
+            args.remove('<') # removes > from list
+            
+        if'>' in args: #output redirection
+            os.close(1) # output stdout
+            os.open(args[args.index('>') +1], os,O_CREAT | os.O_WRONLY) #creates file to write
+            os.set_inheritable(1,True)#sets vaue of inheritbale flag of stdout file descriptor
+            args.remove(args[args.index('>')+1]) #removes file name
+            args.remove('>') # removes >
+    except IndexError:
+        os.write(2, "Not able to redirect")
+    try:
+        if args[0][0] == '/':
+            os.execve(args[0],args,os.environ) #tries to run process
+    except FileNotFOundError:
+        pass
+    except Exception:
+        sys.exit(1)
+
+    os.write(2,("Command not found"))
+                        
+                        
+initialPrompt()
