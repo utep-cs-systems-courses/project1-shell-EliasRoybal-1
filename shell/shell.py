@@ -15,21 +15,18 @@ def initialPrompt():
         command =input(defaultPrompt + ' $ ')
         command = command.strip()
         comand = command.split(' ')
+        
         if command.lower() == 'exit':
             sys.exit(0)
-
-def runBuiltInCommands(userIn):
-    if userIn[0] not in defaultCommands:
-        return
-    elif command == 'cd':
-        currWorkingDir = os.getcwd() #gets current working directory
-        if len(userIn)>1:
-            try:
-                os.chdir(os.path.join(cwd,command[1]))
-            except FileNotFoundError:
-                print("No such directory found")
-            except NotADirectoryError:
-                os.chdir(cwd) #keeps last cwd if user given directory is not found
+        if command == 'cd':
+            currWorkingDir = os.getcwd() #gets current working directory
+            if len(command)>1:
+                try:
+                    os.chdir(os.path.join(defaultPrompt,command[1]))
+                except FileNotFoundError:
+                    print("No such directory found")
+                except NotADirectoryError:
+                    os.chdir(cwd) #keeps last cwd if user given directory is not found
 initialPrompt()
 
         
