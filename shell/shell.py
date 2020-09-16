@@ -13,10 +13,11 @@ def initialPrompt():
             defaultPrompt = os.environ['PS1']
             
         command =input(defaultPrompt + ' $ ')
+        command = command.strip()
         comand = command.split(' ')
-        if command[0].lower() == 'exit':
+        if command.lower() == 'exit':
             sys.exit(0)
-                
+
 def runBuiltInCommands(userIn):
     if userIn[0] not in defaultCommands:
         return
