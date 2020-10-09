@@ -78,7 +78,7 @@ def pipe(args):
 
     if rc > 0: #parent process
         os.close(0)#closes args file descriptor
-        os.dup(pipeReader,0) #duplicates pipe reader to file descriptor 0
+        os.dup2(pipeReader,0) #duplicates pipe reader to file descriptor 0
         for fileDescriptor in (pipeWriter, pipeReader):
             os.close(fileDescriptor) #closes with file descriptor in pipe
         if "|" in read:
@@ -88,7 +88,7 @@ def pipe(args):
         sys.exit(1)
     elif rc == 0: #child process
         os.close(1) #closes output file descriptor
-        os.dup(pipeWriter,1) #dups pipe writer to file descriptor 1
+        os.dup2(pipeWriter,1) #dups pipe writer to file descriptor 1
         for fileDescriptor in (pipeReader, pipeWriter):
             os.close(fileDescriptor) #closes both pipe reader and pipe writer
         redirectAndExecute(write)  #runs the process
