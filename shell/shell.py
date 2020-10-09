@@ -38,10 +38,10 @@ def executeCommand(args):
         except FileNotFoundError:
             os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
     elif "|" in args:
-        fork = os.fork()
-        if fork == 0: #child process
+        fork1 = os.fork()
+        if fork1 == 0: #child process
             pipe(args)
-        elif fork < 0:
+        elif fork1 < 0:
             os.write(2, ("Fork failed\n").encode())
             sys.exit(1)
         else: #parent fork was good
@@ -78,7 +78,7 @@ def pipe(args):
 
     if rc > 0: #parent process
         os.close(0)#closes args file descriptor
-        os.dup(pipeReader,0) #dups pipe reader to file descriptor 0
+        os.dup(pipeReader,0) #duplicates pipe reader to file descriptor 0
         for fileDescriptor in (pipeWriter, pipeReader):
             os.close(fileDescriptor) #closes with file descriptor in pipe
         if "|" in read:
@@ -114,7 +114,7 @@ def redirectAndExecute(args):
             args.remove(args[args.index('>')+1]) #removes file name
             args.remove('>') # removes >
     except IndexError:
-        os.write(2, "Not able to redirect\n")
+        os.write(2, "Not able to redirect\n".encode())
     try:
         if args[0][0] == '/':
             os.execve(args[0],args,os.environ) #tries to run process
@@ -124,9 +124,9 @@ def redirectAndExecute(args):
         sys.exit(1)
 
     for dir in re.split(":", os.environ['PATH']): #tries directories in path
-        targetFile  = "%s%s" % (dir, args[0])
+        targetFile  = "%s/%s" % (dir, args[0])
         try:
-            os.execve(targetFile, args, os.environ)
+            os.execve(targetFile, args, os.environ)# tries to execute
         except FileNotFoundError:
             pass
         except Exception:
