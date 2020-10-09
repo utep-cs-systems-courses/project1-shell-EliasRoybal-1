@@ -9,58 +9,59 @@ def initialPrompt():
         defaultPrompt = os.getcwd() + "$ "
         if 'PS1' in os.environ:
             defaultPrompt = os.environ['PS1']
-            
-        args = input(defaultPrompt)
-        args = args.strip()
-        args = args.split(' ')
 
         try:
-            if len(args) == 0: #contiues prompt if argument is empty
-                continue
-            if args[0].lower() == 'exit':
-                sys.exit(0)
-            if args[0].lower() == 'cd':
-                try:
-                    os.chdir(args[1])
-                except IndexError:
-                    os.write(2, ("You must include desired target directory \n").encode()) 
-                except FileNotFoundError:
-                    os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
-            elif "|" in args:
-                fork = os.fork()
-                if fork == 0: #child process
-                    pipe(args)
-                elif fork < 0:
-                    os.write(2, ("Fork failed\n").encode())
-                    sys.exit(1)
-                else: #parent fork was good
-                    if args[-1] != "&":
-                        val = os.wait()
-                        if val[1] != 0 and val[1] != 256:
-                            os.write(2, ("Program ended. Exit code: %d\n" % val[1].encode()))
-            
-            else:
-                rc = os.fork()
-
-                isWaiting = True
-
-                if "&" in args:
-                    isWaiting = False
-                    args.remove("&")
-                if rc == 0:
-                    redirectAndExecute(args)
-                elif rc < 0:
-                    os.write(2,("Fork failed".encode()))
-                    sys.exit(1)
-
-                else:
-                    if isWaiting:
-                        val = os.wait()
-                        if val[1] !=0 and val[1] != 256:
-                            os.write(2,("Program terminated. Exit Code: %d\n" % val[1]).encode())
-        except FileNotFoundError:
+            os.write(1, defaultPrompt.encode()) # writes the encoded default prompt with output file descriptor
+            input = os.read(0,10000) # reads up to 10000 bytes
+        except EOFError:
             sys.exit(1)
 
+
+def executeCommand(input):
+    if len(input) == 0: #contiues prompt if argument is empty
+        continue
+    if input[0].lower() == 'exit':
+        sys.exit(0)
+    if input[0].lower() == 'cd':
+        try:
+            os.chdir(args[1])
+        except IndexError:
+            os.write(2, ("You must include desired target directory \n").encode()) 
+        except FileNotFoundError:
+            os.write(2, ("No such directory found\n").encode()) #standard error file descriptor
+    elif "|" in args:
+        fork = os.fork()
+        if fork == 0: #child process
+            pipe(input)
+        elif fork < 0:
+            os.write(2, ("Fork failed\n").encode())
+            sys.exit(1)
+        else: #parent fork was good
+            if input[-1] != "&":
+                val = os.wait()
+                if val[1] != 0 and val[1] != 256:
+                    os.write(2, ("Program ended. Exit code: %d\n" % val[1].encode()))
+            
+    else:
+        rc = os.fork()
+        
+        isWaiting = True
+
+        if "&" in args:
+            isWaiting = False
+            args.remove("&")
+        if rc == 0:
+            redirectAndExecute(args)
+        elif rc < 0:
+            os.write(2,("Fork failed".encode()))
+            sys.exit(1)
+            
+        else:
+            if isWaiting:
+                val = os.wait()
+                if val[1] !=0 and val[1] != 256:
+                    os.write(2,("Program terminated. Exit Code: %d\n" % val[1]).encode())
+                    
 def pipe(args):
     write = args[0:args.index("|")]
     read = args[args.index("|")+1:]
