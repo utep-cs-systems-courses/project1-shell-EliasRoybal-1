@@ -6,11 +6,11 @@ import re
 
 def initialPrompt():
     while True:
-        defaultPrompt = os.getcwd()
-        if 'PS1'in os.environ:
+        defaultPrompt = os.getcwd() + "$ "
+        if 'PS1' in os.environ:
             defaultPrompt = os.environ['PS1']
             
-        args =input(defaultPrompt + ' $ ')
+        args = input(defaultPrompt)
         args = args.strip()
         args = args.split(' ')
 
