@@ -15,7 +15,7 @@ def initialPrompt():
             args = os.read(0,10000) # reads up to 10000 bytes
 
             if len(args) == 0:
-                continue
+                break
             args  = args.decode().split("\n")
 
             for argument in args:
