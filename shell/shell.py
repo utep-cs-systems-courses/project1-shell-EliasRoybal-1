@@ -12,17 +12,25 @@ def initialPrompt():
 
         try:
             os.write(1, defaultPrompt.encode()) # writes the encoded default prompt with output file descriptor
-            input = os.read(0,10000) # reads up to 10000 bytes
+            args = os.read(0,10000) # reads up to 10000 bytes
+
+            if len(args) == 0:
+                continue
+            args  = args.decode().split("\n")
+
+            for argument in args:
+                executeCommand(argument.split())
         except EOFError:
             sys.exit(1)
 
 
-def executeCommand(input):
-    if len(input) == 0: #contiues prompt if argument is empty
-        continue
-    if input[0].lower() == 'exit':
+def executeCommand(args):
+    if len(args) == 0: #exits method if argument is empty
+        return
+    
+    if args[0].lower() == 'exit':
         sys.exit(0)
-    if input[0].lower() == 'cd':
+    if args[0].lower() == 'cd':
         try:
             os.chdir(args[1])
         except IndexError:
@@ -32,12 +40,12 @@ def executeCommand(input):
     elif "|" in args:
         fork = os.fork()
         if fork == 0: #child process
-            pipe(input)
+            pipe(args)
         elif fork < 0:
             os.write(2, ("Fork failed\n").encode())
             sys.exit(1)
         else: #parent fork was good
-            if input[-1] != "&":
+            if args[-1] != "&":
                 val = os.wait()
                 if val[1] != 0 and val[1] != 256:
                     os.write(2, ("Program ended. Exit code: %d\n" % val[1].encode()))
@@ -69,7 +77,7 @@ def pipe(args):
     rc = os.fork(); #returns 0 to child, pid to parent
 
     if rc > 0: #parent process
-        os.close(0)#closes input file descriptor
+        os.close(0)#closes args file descriptor
         os.dup(pipeReader,0) #dups pipe reader to file descriptor 0
         for fileDescriptor in (pipeWriter, pipeReader):
             os.close(fileDescriptor) #closes with file descriptor in pipe
